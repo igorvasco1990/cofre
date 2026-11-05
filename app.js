@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const PBKDF2_ITER = 600000;
 const AAD = new TextEncoder().encode('cofre-offline-v1');
 const enc = new TextEncoder();
@@ -662,9 +662,34 @@ function bind() {
   $('#file-input').onchange = onFilePicked;
 }
 
+/* Correção para o modo "Site para computador" do Chrome no celular:
+ * nesse modo a página é desenhada com ~980px de largura e tudo fica minúsculo.
+ * Detecta e aplica zoom para voltar à largura real da tela. */
+function fixDesktopModeOnPhone() {
+  const touch = matchMedia('(pointer: coarse)').matches;
+  const real = Math.min(screen.width, screen.height) || 0;
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const portrait = matchMedia('(orientation: portrait)').matches;
+  const deviceW = portrait ? real : Math.max(screen.width, screen.height);
+  if (touch && deviceW > 0 && deviceW < 760 && vw > deviceW * 1.3) {
+    document.documentElement.style.zoom = String(vw / deviceW);
+  } else {
+    document.documentElement.style.zoom = '';
+  }
+}
+
 async function init() {
+  fixDesktopModeOnPhone();
+  window.addEventListener('resize', () => { document.documentElement.style.zoom = ''; fixDesktopModeOnPhone(); });
   bind();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Quando sair versão nova do app, recarrega sozinho (só se o cofre estiver bloqueado).
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!reloaded && !S.key) { reloaded = true; location.reload(); }
+    });
+  }
   if (!window.crypto || !crypto.subtle || !window.indexedDB) {
     document.body.textContent = 'Este navegador não oferece criptografia segura. Abra o Cofre por um endereço https:// no Chrome ou Safari atualizado.';
     return;
