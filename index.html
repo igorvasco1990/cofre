@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Cofre</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cofre">
+<meta name="theme-color" content="#0f172a">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- CRIAR COFRE -->
+<section id="view-setup" class="view center" hidden>
+  <div class="card narrow">
+    <img src="icons/icon-192.png" alt="" class="logo">
+    <h1>Criar seu cofre</h1>
+    <p class="muted">Suas senhas ficam só neste aparelho, criptografadas com a senha mestra. Nada é enviado para a internet.</p>
+    <label>Senha mestra
+      <input id="setup-pw" type="password" autocomplete="new-password" minlength="8">
+    </label>
+    <label>Repita a senha mestra
+      <input id="setup-pw2" type="password" autocomplete="new-password">
+    </label>
+    <p class="warn">Guarde bem esta senha. Se esquecer, ninguém consegue recuperar o cofre, nem você.</p>
+    <p id="setup-msg" class="error" role="alert"></p>
+    <button id="btn-create" class="btn primary block">Criar cofre</button>
+    <div class="divider"><span>ou</span></div>
+    <button id="btn-restore" class="btn block">Restaurar de um backup</button>
+  </div>
+</section>
+
+<!-- DESBLOQUEAR -->
+<section id="view-unlock" class="view center" hidden>
+  <div class="card narrow">
+    <img src="icons/icon-192.png" alt="" class="logo">
+    <h1>Cofre bloqueado</h1>
+    <label>Senha mestra
+      <input id="unlock-pw" type="password" autocomplete="current-password" enterkeyhint="go">
+    </label>
+    <p id="unlock-msg" class="error" role="alert"></p>
+    <button id="btn-unlock" class="btn primary block">Desbloquear</button>
+  </div>
+</section>
+
+<!-- LISTA -->
+<section id="view-main" class="view" hidden>
+  <header class="topbar">
+    <h1 class="title">Cofre <span id="count" class="badge"></span></h1>
+    <div class="actions">
+      <button id="btn-settings" class="icon-btn" aria-label="Configurações" title="Configurações">⚙︎</button>
+      <button id="btn-lock" class="icon-btn" aria-label="Bloquear" title="Bloquear">🔒</button>
+    </div>
+  </header>
+  <div class="searchbar">
+    <input id="search" type="search" placeholder="Buscar app, site ou usuário" autocomplete="off" autocapitalize="off" spellcheck="false">
+  </div>
+  <div id="backup-banner" class="banner" hidden>
+    <span id="backup-banner-text"></span>
+    <button id="btn-banner-backup" class="btn small">Fazer backup</button>
+  </div>
+  <ul id="list" class="list"></ul>
+  <p id="empty" class="empty" hidden></p>
+  <button id="btn-add" class="fab" aria-label="Adicionar senha">＋</button>
+</section>
+
+<!-- DETALHE -->
+<div id="sheet-detail" class="sheet" hidden>
+  <div class="sheet-card">
+    <header class="sheet-head">
+      <button class="icon-btn" data-close aria-label="Voltar">‹</button>
+      <h2 id="d-name"></h2>
+      <button id="btn-edit" class="btn small">Editar</button>
+    </header>
+    <div id="d-fields" class="fields"></div>
+    <p id="d-meta" class="muted small"></p>
+    <button id="btn-delete" class="btn danger block">Excluir</button>
+  </div>
+</div>
+
+<!-- EDITAR / NOVO -->
+<div id="sheet-edit" class="sheet" hidden>
+  <div class="sheet-card">
+    <header class="sheet-head">
+      <button class="icon-btn" data-close aria-label="Cancelar">✕</button>
+      <h2 id="e-title">Nova senha</h2>
+      <button id="btn-save" class="btn primary small">Salvar</button>
+    </header>
+    <label>Nome (app ou site) *
+      <input id="e-name" type="text" autocomplete="off" placeholder="Ex.: Banco, Gmail, Instagram">
+    </label>
+    <label>Usuário / e-mail
+      <input id="e-user" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <label>Senha
+      <span class="input-row">
+        <input id="e-pass" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button id="e-eye" class="icon-btn" type="button" aria-label="Mostrar senha">👁</button>
+        <button id="e-gen-toggle" class="btn small" type="button">Gerar</button>
+      </span>
+    </label>
+    <div id="gen" class="gen" hidden>
+      <div class="gen-out"><code id="gen-out"></code><button id="gen-refresh" class="icon-btn" type="button" aria-label="Gerar outra">↻</button></div>
+      <label class="inline">Tamanho: <b id="gen-len-v">16</b>
+        <input id="gen-len" type="range" min="8" max="40" value="16">
+      </label>
+      <div class="checks">
+        <label><input type="checkbox" id="gen-upper" checked> A-Z</label>
+        <label><input type="checkbox" id="gen-lower" checked> a-z</label>
+        <label><input type="checkbox" id="gen-digits" checked> 0-9</label>
+        <label><input type="checkbox" id="gen-symbols" checked> !@#</label>
+      </div>
+      <button id="gen-use" class="btn block" type="button">Usar esta senha</button>
+    </div>
+    <label>Site / endereço
+      <input id="e-url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="opcional">
+    </label>
+    <label>Observações
+      <textarea id="e-notes" rows="3" placeholder="opcional (PIN, perguntas de segurança…)"></textarea>
+    </label>
+    <p id="e-msg" class="error" role="alert"></p>
+  </div>
+</div>
+
+<!-- CONFIGURAÇÕES -->
+<div id="sheet-settings" class="sheet" hidden>
+  <div class="sheet-card">
+    <header class="sheet-head">
+      <button class="icon-btn" data-close aria-label="Voltar">‹</button>
+      <h2>Configurações</h2>
+      <span></span>
+    </header>
+
+    <h3>Segurança</h3>
+    <label>Bloquear ao sair do app depois de
+      <select id="s-lock">
+        <option value="0">Imediatamente</option>
+        <option value="30">30 segundos</option>
+        <option value="60">1 minuto</option>
+        <option value="300">5 minutos</option>
+        <option value="900">15 minutos</option>
+      </select>
+    </label>
+    <label>Bloquear sem uso depois de
+      <select id="s-idle">
+        <option value="1">1 minuto</option>
+        <option value="5">5 minutos</option>
+        <option value="15">15 minutos</option>
+        <option value="60">1 hora</option>
+      </select>
+    </label>
+    <label>Limpar área de transferência depois de
+      <select id="s-clip">
+        <option value="0">Nunca</option>
+        <option value="20">20 segundos</option>
+        <option value="45">45 segundos</option>
+        <option value="90">90 segundos</option>
+      </select>
+    </label>
+    <button id="btn-change-pw" class="btn block">Trocar senha mestra</button>
+
+    <h3>Backup</h3>
+    <p class="muted small" id="s-backup-info"></p>
+    <button id="btn-export" class="btn primary block">Exportar backup criptografado</button>
+    <button id="btn-import" class="btn block">Importar backup (mesclar)</button>
+    <p class="muted small">É pelo backup que as senhas passam de um celular para o outro (AirDrop, cabo, pendrive, Arquivos). O arquivo só abre com a senha mestra usada quando ele foi feito.</p>
+
+    <h3>Armazenamento</h3>
+    <p class="muted small" id="s-storage"></p>
+
+    <h3>Zona de perigo</h3>
+    <button id="btn-wipe" class="btn danger block">Apagar o cofre deste aparelho</button>
+    <p class="muted small center-text" id="s-version"></p>
+  </div>
+</div>
+
+<!-- MODAL GENÉRICO DE SENHA -->
+<div id="modal" class="modal" hidden>
+  <div class="card narrow">
+    <h2 id="m-title"></h2>
+    <p id="m-text" class="muted"></p>
+    <div id="m-inputs"></div>
+    <p id="m-msg" class="error" role="alert"></p>
+    <div class="row-end">
+      <button id="m-cancel" class="btn">Cancelar</button>
+      <button id="m-ok" class="btn primary">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="busy" class="busy" hidden><div class="spinner"></div><p id="busy-text">Processando…</p></div>
+<div id="toast" class="toast" hidden></div>
+<input id="file-input" type="file" hidden>
+
+<script src="app.js"></script>
+</body>
+</html>
