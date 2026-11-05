@@ -1,13 +1,16 @@
 /* Service worker: guarda o app em cache para funcionar sem internet.
  * Os dados (senhas) NÃO passam por aqui: ficam cifrados no IndexedDB. */
-const CACHE = 'cofre-v1.0.1';
+const CACHE = 'cofre-v1.0.2';
 const ASSETS = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: 'reload' garante que a versão nova venha da rede, e não do cache HTTP do navegador.
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {

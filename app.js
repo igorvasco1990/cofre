@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const PBKDF2_ITER = 600000;
 const AAD = new TextEncoder().encode('cofre-offline-v1');
 const enc = new TextEncoder();
@@ -683,7 +683,9 @@ async function init() {
   window.addEventListener('resize', () => { document.documentElement.style.zoom = ''; fixDesktopModeOnPhone(); });
   bind();
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .then(reg => { reg.update().catch(() => {}); })
+      .catch(() => {});
     // Quando sair versão nova do app, recarrega sozinho (só se o cofre estiver bloqueado).
     let reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
