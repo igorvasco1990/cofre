@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 const PBKDF2_ITER = 600000;
 const AAD = new TextEncoder().encode('cofre-offline-v1');
 const enc = new TextEncoder();
@@ -1210,7 +1210,10 @@ function fixDesktopModeOnPhone() {
   const portrait = matchMedia('(orientation: portrait)').matches;
   const deviceW = portrait ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
   const vw = document.documentElement.clientWidth || window.innerWidth;
-  document.documentElement.style.zoom = (touch && deviceW > 0 && deviceW < 760 && vw > deviceW * 1.3) ? String(vw / deviceW) : '';
+  const zoomed = touch && deviceW > 0 && deviceW < 760 && vw > deviceW * 1.3;
+  document.documentElement.style.zoom = zoomed ? String(vw / deviceW) : '';
+  // Com zoom, a largura "vista" pelas media queries continua de PC: força o layout de celular.
+  document.documentElement.classList.toggle('zoomed', zoomed);
 }
 
 async function init() {
