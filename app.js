@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.2.0';
 const PBKDF2_ITER = 600000;
 const AAD = new TextEncoder().encode('cofre-offline-v1');
 const enc = new TextEncoder();
@@ -381,6 +381,7 @@ async function unlock() {
     Object.assign(S, { key: r.key, salt: r.salt, iter: r.iter, data: normalizeData(r.data), record: rec });
     failCount = 0;
     $('#unlock-pw').value = ''; msg.textContent = '';
+    DB.get('bio').then(b => { if (b && b.vaultSalt === rec.salt) { b.pwAt = Date.now(); return DB.set('bio', b); } }).catch(() => {});
     enterMain();
   } catch (e) {
     failCount++;
@@ -393,12 +394,13 @@ async function unlock() {
 function lock() {
   S.key = null; S.data = null; S.currentId = null; S.editingId = null;
   closeAllSheets();
-  $('#modal').hidden = true; $('#big').hidden = true;
+  $('#modal').hidden = true; $('#big').hidden = true; $('#toast').hidden = true;
   $('#list').replaceChildren(); $('#d-fields').replaceChildren(); $('#health-groups').replaceChildren();
   for (const id of ['#search', '#e-name', '#e-user', '#e-pass', '#e-url', '#e-notes', '#e-totp']) $(id).value = '';
   $('#gen-out').textContent = '';
   clearTimeout(idleTimer);
   showView('unlock');
+  refreshUnlockBio();
   setTimeout(() => $('#unlock-pw').focus(), 100);
 }
 
@@ -888,6 +890,7 @@ function renderSettings() {
   $('#btn-install').textContent = deferredInstall ? 'Instalar' : 'Como instalar';
   $('#s-version').textContent = `Cofre ${APP_VERSION} · Criptografia AES-256-GCM · PBKDF2-SHA256 ${S.iter.toLocaleString('pt-BR')} iterações · Funciona 100% offline`;
   storageStatus();
+  renderBioSetting();
 }
 async function saveSettings() {
   const st = S.data.settings;
@@ -909,6 +912,134 @@ async function storageStatus() {
   $('#storage-title').textContent = persisted ? 'Armazenamento protegido' : 'Armazenamento comum';
   $('#storage-text').textContent = (persisted ? 'O sistema não apaga os dados do Cofre sozinho.' : 'Mantenha backups em dia; o sistema pode limpar dados de sites pouco usados.')
     + (isStandalone() ? '' : ' Instale o app para mais proteção.');
+}
+
+
+/* ================= biometria (WebAuthn + extensão PRF) =================
+ * A digital/rosto libera um segredo do chip seguro do aparelho (PRF). Esse segredo
+ * cifra uma cópia da chave do cofre. Sem a biometria, a cópia não abre. Tudo local. */
+const BIO_PW_DAYS = 14;
+async function bioAvailable() {
+  try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (_) { return false; }
+}
+async function rawKeyBits(pw, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw.normalize('NFC')), 'PBKDF2', false, ['deriveBits']);
+  return crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, 256);
+}
+async function bioWrapKey(prfOut) {
+  const base = await crypto.subtle.importKey('raw', prfOut, 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: enc.encode('cofre-bio-v1'), info: enc.encode('wrap') },
+    base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function bioAssert(credId, prfSalt) {
+  const cred = await navigator.credentials.get({ publicKey: {
+    challenge: crypto.getRandomValues(new Uint8Array(32)), rpId: location.hostname, timeout: 60000,
+    allowCredentials: [{ type: 'public-key', id: credId }], userVerification: 'required',
+    extensions: { prf: { eval: { first: prfSalt } } }
+  } });
+  const r = cred.getClientExtensionResults();
+  const out = r && r.prf && r.prf.results && r.prf.results.first;
+  if (!out) { const e = new Error('Sem suporte a PRF'); e.name = 'NoPrf'; throw e; }
+  return out;
+}
+async function bioSave(prfOut, raw, credId, prfSalt) {
+  const wk = await bioWrapKey(prfOut);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: AAD }, wk, raw);
+  await DB.set('bio', { v: 1, credId: b64.enc(credId), prfSalt: b64.enc(prfSalt), iv: b64.enc(iv), ct: b64.enc(ct), vaultSalt: b64.enc(S.salt), pwAt: Date.now() });
+}
+const bioUnsupportedMsg = () => isIOS()
+  ? 'Este iPhone não oferece o recurso necessário. Atualize para o iOS 18 ou mais novo e deixe as Senhas/Chaves do iCloud ativas em Ajustes.'
+  : 'Este celular ou navegador não oferece o recurso necessário. Atualize o Chrome e o Android, e confira se há digital ou desbloqueio facial cadastrado.';
+async function enableBio() {
+  let raw = null;
+  const ok = await askFields({
+    title: 'Ativar digital ou rosto',
+    text: 'Confirme a senha mestra. Em seguida o celular vai pedir sua digital ou reconhecimento facial.',
+    fields: [{ label: 'Senha mestra' }], okText: 'Continuar',
+    validate: async ([pw]) => {
+      busy(true, 'Verificando…');
+      try { await openRecord(S.record, pw); raw = await rawKeyBits(pw, S.salt, S.iter); return null; }
+      catch (_) { return 'Senha mestra incorreta.'; } finally { busy(false); }
+    }
+  });
+  if (!ok) return false;
+  const prfSalt = crypto.getRandomValues(new Uint8Array(32));
+  let cred;
+  try {
+    cred = await navigator.credentials.create({ publicKey: {
+      rp: { name: 'Cofre', id: location.hostname },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'Cofre', displayName: 'Cofre de Senhas' },
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' },
+      timeout: 60000, attestation: 'none',
+      extensions: { prf: { eval: { first: prfSalt } } }
+    } });
+  } catch (e) {
+    if (e.name === 'NotAllowedError' || e.name === 'AbortError') toast('Ativação cancelada');
+    else await infoBox('Não foi possível ativar', bioUnsupportedMsg());
+    return false;
+  }
+  const credId = new Uint8Array(cred.rawId);
+  const ext = cred.getClientExtensionResults() || {};
+  if (!ext.prf || ext.prf.enabled === false) { await infoBox('Biometria não suportada', bioUnsupportedMsg()); return false; }
+  let out = ext.prf.results && ext.prf.results.first;
+  if (!out) {
+    try { out = await bioAssert(credId, prfSalt); }
+    catch (e) {
+      if (e.name === 'NotAllowedError' || e.name === 'AbortError') toast('Ativação cancelada');
+      else await infoBox('Biometria não suportada', bioUnsupportedMsg());
+      return false;
+    }
+  }
+  await bioSave(out, raw, credId, prfSalt);
+  toast('Pronto! Da próxima vez, desbloqueie com digital ou rosto.', { ms: 3500 });
+  return true;
+}
+async function disableBio() { await DB.del('bio').catch(() => {}); }
+async function bioState() {
+  const [bio, rec] = await Promise.all([DB.get('bio').catch(() => null), DB.get('vault').catch(() => null)]);
+  if (!bio) return { on: false };
+  if (!rec || bio.vaultSalt !== rec.salt) { await disableBio(); return { on: false }; }
+  const stale = Date.now() - (bio.pwAt || 0) > BIO_PW_DAYS * 86400000;
+  return { on: true, stale, bio, rec };
+}
+async function refreshUnlockBio(auto = false) {
+  const st = await bioState();
+  $('#btn-bio').hidden = !st.on || st.stale;
+  $('#bio-hint').hidden = !(st.on && st.stale);
+  $('#bio-hint').textContent = `Por segurança, a cada ${BIO_PW_DAYS} dias o Cofre pede a senha mestra para você não esquecê-la.`;
+  if (auto && st.on && !st.stale && !isIOS()) unlockBio(true);
+}
+let bioBusy = false;
+async function unlockBio(silent = false) {
+  if (bioBusy) return;
+  const st = await bioState();
+  if (!st.on || st.stale) { refreshUnlockBio(); return; }
+  bioBusy = true;
+  try {
+    const out = await bioAssert(b64.dec(st.bio.credId), b64.dec(st.bio.prfSalt));
+    busy(true, 'Desbloqueando…');
+    const wk = await bioWrapKey(out);
+    const raw = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(st.bio.iv), additionalData: AAD }, wk, b64.dec(st.bio.ct));
+    const key = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    const data = await decryptObj(key, st.rec.iv, st.rec.ct);
+    Object.assign(S, { key, salt: b64.dec(st.rec.salt), iter: Number(st.rec.iter), data: normalizeData(data), record: st.rec });
+    $('#unlock-msg').textContent = '';
+    enterMain();
+  } catch (e) {
+    if (!silent && e.name !== 'NotAllowedError' && e.name !== 'AbortError') $('#unlock-msg').textContent = 'A biometria não funcionou. Use a senha mestra.';
+  } finally { busy(false); bioBusy = false; }
+}
+async function renderBioSetting() {
+  const sw = $('#s-bio'), txt = $('#bio-text');
+  const avail = await bioAvailable();
+  const st = await bioState();
+  sw.checked = st.on;
+  sw.disabled = !avail && !st.on;
+  txt.textContent = !avail && !st.on ? 'Não disponível neste aparelho ou navegador'
+    : st.on ? `Ativado · a senha mestra é pedida a cada ${BIO_PW_DAYS} dias` : 'Desbloqueio rápido, sem digitar a senha';
 }
 
 /* ================= arquivos (backup / CSV) ================= */
@@ -983,6 +1114,7 @@ async function restoreFromBackup(rec) {
   if (!r) return;
   Object.assign(S, { key: r.key, salt: r.salt, iter: r.iter, data: normalizeData(r.data) });
   await persist();
+  await disableBio();
   requestPersistentStorage();
   enterMain();
   toast(`Cofre restaurado · ${plural(S.data.entries.length, 'senha', 'senhas')}`);
@@ -1130,7 +1262,18 @@ async function changeMasterPassword() {
     S.iter = PBKDF2_ITER;
     S.key = await deriveKey(vals[1], S.salt, S.iter);
     S.data.settings.lastBackup = 0;
+    const oldBio = await DB.get('bio').catch(() => null);
     await persist();
+    busy(false);
+    if (oldBio) {
+      try {
+        const out = await bioAssert(b64.dec(oldBio.credId), b64.dec(oldBio.prfSalt));
+        await bioSave(out, await rawKeyBits(vals[1], S.salt, S.iter), b64.dec(oldBio.credId), b64.dec(oldBio.prfSalt));
+      } catch (_) {
+        await disableBio();
+        toast('Biometria desativada. Ative de novo em Ajustes.', { ms: 3500 });
+      }
+    }
     renderSettings();
     toast('Senha mestra trocada. Faça um backup novo.', { ms: 3500 });
   } finally { busy(false); }
@@ -1145,6 +1288,7 @@ async function wipeVault() {
   });
   if (!vals) return;
   await DB.del('vault');
+  await disableBio();
   S.key = null; S.data = null;
   location.reload();
 }
@@ -1195,6 +1339,13 @@ function bind() {
   for (const id of ['#s-lock', '#s-idle', '#s-clip']) $(id).onchange = saveSettings;
   $('#s-theme').onchange = () => { store.set('cofre-theme', $('#s-theme').value); applyTheme(); };
   $('#btn-install').onclick = installApp;
+  $('#btn-bio').onclick = () => unlockBio(false);
+  $('#s-bio').onchange = async () => {
+    const sw = $('#s-bio');
+    if (sw.checked) { sw.checked = false; await enableBio(); }
+    else if (await confirmBox('Desativar biometria', 'O Cofre passará a pedir sempre a senha mestra.', 'Desativar')) { await disableBio(); toast('Biometria desativada'); }
+    renderBioSetting();
+  };
   $('#btn-export').onclick = exportBackup;
   $('#btn-import').onclick = () => pickFile('import');
   $('#btn-import-csv').onclick = () => pickFile('csv');
@@ -1237,7 +1388,7 @@ async function init() {
   }
   let rec = null;
   try { rec = await DB.get('vault'); } catch (_) {}
-  if (rec) { showView('unlock'); setTimeout(() => $('#unlock-pw').focus(), 100); }
+  if (rec) { showView('unlock'); refreshUnlockBio(true); setTimeout(() => $('#unlock-pw').focus(), 100); }
   else showView('setup');
 }
 init();

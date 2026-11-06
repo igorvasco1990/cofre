@@ -309,3 +309,10 @@ textarea { resize: vertical; min-height: 80px; }
 .btn.danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
 .steps { margin: .9rem 0 0; padding-left: 1.2rem; color: var(--fg-2); font-size: .92rem; }
 .steps li { margin: .45rem 0; }
+
+.switch { -webkit-appearance: none; appearance: none; width: 48px; height: 28px; border-radius: 99px; background: var(--line-2); position: relative; cursor: pointer; flex: none; transition: background .2s; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s; }
+.switch:checked { background: var(--brand); }
+.switch:checked::after { transform: translateX(20px); }
+.switch:disabled { opacity: .4; cursor: default; }
+#btn-bio svg { width: 22px; height: 22px; }

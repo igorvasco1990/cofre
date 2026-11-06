@@ -50,6 +50,7 @@
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r=".6"/><circle cx="15.5" cy="15.5" r=".6"/><circle cx="12" cy="12" r=".6"/><circle cx="15.5" cy="8.5" r=".6"/><circle cx="8.5" cy="15.5" r=".6"/></symbol>
+  <symbol id="i-finger" viewBox="0 0 24 24"><path d="M12 11v3a8 8 0 0 1-1.5 4.7"/><path d="M8.5 10A3.5 3.5 0 0 1 15.5 11v2.5a12 12 0 0 1-.8 4.3"/><path d="M5.5 15.5A11 11 0 0 0 6 11a6 6 0 0 1 10.6-3.8"/><path d="M18.4 9.5c.4.9.6 1.9.6 3 0 1.6-.2 3.2-.6 4.7"/><path d="M3.3 8.5A9.5 9.5 0 0 1 20.2 6.5"/></symbol>
 </svg>
 
 <!-- ============ CRIAR COFRE ============ -->
@@ -93,6 +94,8 @@
     </div>
     <p id="unlock-msg" class="error" role="alert"></p>
     <button id="btn-unlock" class="btn primary block lg">Desbloquear</button>
+    <button id="btn-bio" class="btn ghost block lg" hidden><svg><use href="#i-finger"/></svg>Usar digital ou rosto</button>
+    <p id="bio-hint" class="hint center" hidden></p>
   </div>
 </section>
 
@@ -209,6 +212,11 @@
           <select id="s-clip" class="mini-select">
             <option value="0">Nunca</option><option value="20">20 s</option><option value="45">45 s</option><option value="90">90 s</option>
           </select>
+        </label>
+        <label class="row-item" id="bio-row">
+          <span class="row-icon"><svg><use href="#i-finger"/></svg></span>
+          <div class="row-body"><b>Desbloquear com digital ou rosto</b><small id="bio-text">Verificando o aparelho…</small></div>
+          <input type="checkbox" id="s-bio" class="switch" aria-label="Desbloquear com biometria">
         </label>
         <button class="row-item" id="btn-change-pw">
           <span class="row-icon"><svg><use href="#i-key"/></svg></span>
