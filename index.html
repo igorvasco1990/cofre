@@ -13,191 +13,353 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cofre">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0b1120">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- CRIAR COFRE -->
-<section id="view-setup" class="view center" hidden>
-  <div class="card narrow">
-    <img src="icons/icon-192.png" alt="" class="logo">
-    <h1>Criar seu cofre</h1>
-    <p class="muted">Suas senhas ficam só neste aparelho, criptografadas com a senha mestra. Nada é enviado para a internet.</p>
-    <label>Senha mestra
-      <input id="setup-pw" type="password" autocomplete="new-password" minlength="8">
-    </label>
-    <label>Repita a senha mestra
-      <input id="setup-pw2" type="password" autocomplete="new-password">
-    </label>
-    <p class="warn">Guarde bem esta senha. Se esquecer, ninguém consegue recuperar o cofre, nem você.</p>
-    <p id="setup-msg" class="error" role="alert"></p>
-    <button id="btn-create" class="btn primary block">Criar cofre</button>
-    <div class="divider"><span>ou</span></div>
-    <button id="btn-restore" class="btn block">Restaurar de um backup</button>
-  </div>
-</section>
+<svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true">
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 7.6-1.8"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8l-5-5z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r=".6"/><circle cx="15.5" cy="15.5" r=".6"/><circle cx="12" cy="12" r=".6"/><circle cx="15.5" cy="8.5" r=".6"/><circle cx="8.5" cy="15.5" r=".6"/></symbol>
+</svg>
 
-<!-- DESBLOQUEAR -->
-<section id="view-unlock" class="view center" hidden>
-  <div class="card narrow">
-    <img src="icons/icon-192.png" alt="" class="logo">
-    <h1>Cofre bloqueado</h1>
-    <label>Senha mestra
-      <input id="unlock-pw" type="password" autocomplete="current-password" enterkeyhint="go">
-    </label>
-    <p id="unlock-msg" class="error" role="alert"></p>
-    <button id="btn-unlock" class="btn primary block">Desbloquear</button>
-  </div>
-</section>
-
-<!-- LISTA -->
-<section id="view-main" class="view" hidden>
-  <header class="topbar">
-    <h1 class="title">Cofre <span id="count" class="badge"></span></h1>
-    <div class="actions">
-      <button id="btn-settings" class="icon-btn" aria-label="Configurações" title="Configurações">⚙︎</button>
-      <button id="btn-lock" class="icon-btn" aria-label="Bloquear" title="Bloquear">🔒</button>
-    </div>
-  </header>
-  <div class="searchbar">
-    <input id="search" type="search" placeholder="Buscar app, site ou usuário" autocomplete="off" autocapitalize="off" spellcheck="false">
-  </div>
-  <div id="backup-banner" class="banner" hidden>
-    <span id="backup-banner-text"></span>
-    <button id="btn-banner-backup" class="btn small">Fazer backup</button>
-  </div>
-  <ul id="list" class="list"></ul>
-  <p id="empty" class="empty" hidden></p>
-  <button id="btn-add" class="fab" aria-label="Adicionar senha">＋</button>
-</section>
-
-<!-- DETALHE -->
-<div id="sheet-detail" class="sheet" hidden>
-  <div class="sheet-card">
-    <header class="sheet-head">
-      <button class="icon-btn" data-close aria-label="Voltar">‹</button>
-      <h2 id="d-name"></h2>
-      <button id="btn-edit" class="btn small">Editar</button>
-    </header>
-    <div id="d-fields" class="fields"></div>
-    <p id="d-meta" class="muted small"></p>
-    <button id="btn-delete" class="btn danger block">Excluir</button>
-  </div>
-</div>
-
-<!-- EDITAR / NOVO -->
-<div id="sheet-edit" class="sheet" hidden>
-  <div class="sheet-card">
-    <header class="sheet-head">
-      <button class="icon-btn" data-close aria-label="Cancelar">✕</button>
-      <h2 id="e-title">Nova senha</h2>
-      <button id="btn-save" class="btn primary small">Salvar</button>
-    </header>
-    <label>Nome (app ou site) *
-      <input id="e-name" type="text" autocomplete="off" placeholder="Ex.: Banco, Gmail, Instagram">
-    </label>
-    <label>Usuário / e-mail
-      <input id="e-user" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
-    </label>
-    <label>Senha
-      <span class="input-row">
-        <input id="e-pass" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
-        <button id="e-eye" class="icon-btn" type="button" aria-label="Mostrar senha">👁</button>
-        <button id="e-gen-toggle" class="btn small" type="button">Gerar</button>
-      </span>
-    </label>
-    <div id="gen" class="gen" hidden>
-      <div class="gen-out"><code id="gen-out"></code><button id="gen-refresh" class="icon-btn" type="button" aria-label="Gerar outra">↻</button></div>
-      <label class="inline">Tamanho: <b id="gen-len-v">16</b>
-        <input id="gen-len" type="range" min="8" max="40" value="16">
-      </label>
-      <div class="checks">
-        <label><input type="checkbox" id="gen-upper" checked> A-Z</label>
-        <label><input type="checkbox" id="gen-lower" checked> a-z</label>
-        <label><input type="checkbox" id="gen-digits" checked> 0-9</label>
-        <label><input type="checkbox" id="gen-symbols" checked> !@#</label>
+<!-- ============ CRIAR COFRE ============ -->
+<section id="view-setup" class="view auth" hidden>
+  <div class="auth-card">
+    <div class="brand"><span class="brand-mark"><svg><use href="#i-lock"/></svg></span><span>Cofre</span></div>
+    <h1>Crie seu cofre</h1>
+    <p class="muted">Suas senhas ficam somente neste aparelho, protegidas por criptografia AES-256. Nada é enviado para a internet.</p>
+    <div class="field-group">
+      <label for="setup-pw">Senha mestra</label>
+      <div class="input-wrap">
+        <input id="setup-pw" type="password" autocomplete="new-password">
+        <button class="input-icon" type="button" data-toggle-pw="setup-pw" aria-label="Mostrar senha"><svg><use href="#i-eye"/></svg></button>
       </div>
-      <button id="gen-use" class="btn block" type="button">Usar esta senha</button>
+      <div class="meter" id="setup-meter"><span></span></div>
+      <p class="hint" id="setup-meter-text">Use pelo menos 10 caracteres. Uma frase com várias palavras é forte e fácil de lembrar.</p>
     </div>
-    <label>Site / endereço
-      <input id="e-url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="opcional">
-    </label>
-    <label>Observações
-      <textarea id="e-notes" rows="3" placeholder="opcional (PIN, perguntas de segurança…)"></textarea>
-    </label>
-    <p id="e-msg" class="error" role="alert"></p>
+    <div class="field-group">
+      <label for="setup-pw2">Confirme a senha mestra</label>
+      <input id="setup-pw2" type="password" autocomplete="new-password">
+    </div>
+    <label class="check"><input type="checkbox" id="setup-ack"> Entendo que, se eu esquecer a senha mestra, não há como recuperar o cofre.</label>
+    <p id="setup-msg" class="error" role="alert"></p>
+    <button id="btn-create" class="btn primary block lg">Criar cofre</button>
+    <div class="divider"><span>já tem um backup?</span></div>
+    <button id="btn-restore" class="btn ghost block"><svg><use href="#i-upload"/></svg>Restaurar de um backup</button>
   </div>
-</div>
+</section>
 
-<!-- CONFIGURAÇÕES -->
-<div id="sheet-settings" class="sheet" hidden>
-  <div class="sheet-card">
+<!-- ============ DESBLOQUEAR ============ -->
+<section id="view-unlock" class="view auth" hidden>
+  <div class="auth-card">
+    <div class="lock-hero"><svg><use href="#i-lock"/></svg></div>
+    <h1 class="center">Cofre bloqueado</h1>
+    <p class="muted center">Digite sua senha mestra para continuar.</p>
+    <div class="field-group">
+      <div class="input-wrap">
+        <input id="unlock-pw" type="password" autocomplete="current-password" enterkeyhint="go" placeholder="Senha mestra" aria-label="Senha mestra">
+        <button class="input-icon" type="button" data-toggle-pw="unlock-pw" aria-label="Mostrar senha"><svg><use href="#i-eye"/></svg></button>
+      </div>
+    </div>
+    <p id="unlock-msg" class="error" role="alert"></p>
+    <button id="btn-unlock" class="btn primary block lg">Desbloquear</button>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="view-main" class="view app" hidden>
+  <nav class="rail" aria-label="Navegação">
+    <div class="brand rail-brand"><span class="brand-mark"><svg><use href="#i-lock"/></svg></span><span>Cofre</span></div>
+    <button class="nav-item active" data-tab="vault"><svg><use href="#i-key"/></svg><span>Senhas</span></button>
+    <button class="nav-item" data-tab="health"><svg><use href="#i-shield"/></svg><span>Segurança</span><b class="nav-badge" id="health-badge" hidden></b></button>
+    <button class="nav-item" data-tab="settings"><svg><use href="#i-settings"/></svg><span>Ajustes</span></button>
+    <button class="nav-item rail-lock" id="btn-lock-rail"><svg><use href="#i-lock"/></svg><span>Bloquear</span></button>
+  </nav>
+
+  <main class="content">
+    <!-- SENHAS -->
+    <div class="tab" id="tab-vault">
+      <header class="page-head">
+        <div>
+          <h1>Senhas</h1>
+          <p class="sub" id="vault-sub"></p>
+        </div>
+        <button class="icon-btn" id="btn-lock" aria-label="Bloquear"><svg><use href="#i-lock"/></svg></button>
+      </header>
+      <div class="toolbar">
+        <div class="search">
+          <svg><use href="#i-search"/></svg>
+          <input id="search" type="search" placeholder="Buscar" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar">
+        </div>
+        <button class="icon-btn outline" id="btn-sort" aria-label="Ordenar"><svg><use href="#i-sort"/></svg></button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div id="notice" class="notice" hidden>
+        <svg><use href="#i-alert"/></svg>
+        <span id="notice-text"></span>
+        <button id="notice-btn" class="btn sm"></button>
+      </div>
+      <div id="list" class="list"></div>
+      <div id="empty" class="empty" hidden>
+        <div class="empty-icon"><svg><use href="#i-key"/></svg></div>
+        <h3 id="empty-title"></h3>
+        <p id="empty-text" class="muted"></p>
+        <button id="empty-btn" class="btn primary" hidden><svg><use href="#i-plus"/></svg>Adicionar senha</button>
+        <button id="empty-import" class="btn ghost" hidden><svg><use href="#i-upload"/></svg>Importar do Google / Chrome</button>
+      </div>
+      <button id="btn-add" class="fab" aria-label="Adicionar senha"><svg><use href="#i-plus"/></svg></button>
+    </div>
+
+    <!-- SEGURANÇA -->
+    <div class="tab" id="tab-health" hidden>
+      <header class="page-head"><div><h1>Segurança</h1><p class="sub">Análise feita no próprio aparelho</p></div></header>
+      <div class="score-card">
+        <div class="ring" id="score-ring"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52"/></svg><div class="ring-val"><b id="score-val">—</b><span>de 100</span></div></div>
+        <div><h3 id="score-title"></h3><p class="muted" id="score-text"></p></div>
+      </div>
+      <div class="health-groups" id="health-groups"></div>
+    </div>
+
+    <!-- AJUSTES -->
+    <div class="tab" id="tab-settings" hidden>
+      <header class="page-head"><div><h1>Ajustes</h1><p class="sub" id="settings-sub"></p></div></header>
+
+      <div class="group" id="install-group" hidden>
+        <h4>Aplicativo</h4>
+        <div class="row-item">
+          <span class="row-icon"><svg><use href="#i-phone"/></svg></span>
+          <div class="row-body"><b>Instalar na tela inicial</b><small id="install-text">Abre em tela cheia e funciona sem internet.</small></div>
+          <button class="btn sm primary" id="btn-install">Instalar</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h4>Backup e transferência</h4>
+        <button class="row-item" id="btn-export">
+          <span class="row-icon"><svg><use href="#i-download"/></svg></span>
+          <div class="row-body"><b>Exportar backup criptografado</b><small id="backup-info"></small></div>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+        <button class="row-item" id="btn-import">
+          <span class="row-icon"><svg><use href="#i-upload"/></svg></span>
+          <div class="row-body"><b>Importar backup do Cofre</b><small>Junta com as senhas deste aparelho</small></div>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+        <button class="row-item" id="btn-import-csv">
+          <span class="row-icon"><svg><use href="#i-file"/></svg></span>
+          <div class="row-body"><b>Importar CSV</b><small>Google, Chrome, Bitwarden, Samsung Pass e outros</small></div>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+        <button class="row-item" id="btn-export-csv">
+          <span class="row-icon"><svg><use href="#i-file"/></svg></span>
+          <div class="row-body"><b>Exportar CSV (sem criptografia)</b><small>Para levar a outro gerenciador</small></div>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+      </div>
+
+      <div class="group">
+        <h4>Segurança</h4>
+        <label class="row-item">
+          <span class="row-icon"><svg><use href="#i-lock"/></svg></span>
+          <div class="row-body"><b>Bloquear ao sair do app</b></div>
+          <select id="s-lock" class="mini-select">
+            <option value="0">Na hora</option><option value="30">30 s</option><option value="60">1 min</option><option value="300">5 min</option><option value="900">15 min</option>
+          </select>
+        </label>
+        <label class="row-item">
+          <span class="row-icon"><svg><use href="#i-clock"/></svg></span>
+          <div class="row-body"><b>Bloquear sem uso</b></div>
+          <select id="s-idle" class="mini-select">
+            <option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="60">1 hora</option>
+          </select>
+        </label>
+        <label class="row-item">
+          <span class="row-icon"><svg><use href="#i-copy"/></svg></span>
+          <div class="row-body"><b>Limpar área de transferência</b></div>
+          <select id="s-clip" class="mini-select">
+            <option value="0">Nunca</option><option value="20">20 s</option><option value="45">45 s</option><option value="90">90 s</option>
+          </select>
+        </label>
+        <button class="row-item" id="btn-change-pw">
+          <span class="row-icon"><svg><use href="#i-key"/></svg></span>
+          <div class="row-body"><b>Trocar senha mestra</b></div>
+          <svg class="chev"><use href="#i-chevron"/></svg>
+        </button>
+      </div>
+
+      <div class="group">
+        <h4>Aparência</h4>
+        <label class="row-item">
+          <span class="row-icon"><svg><use href="#i-moon"/></svg></span>
+          <div class="row-body"><b>Tema</b></div>
+          <select id="s-theme" class="mini-select">
+            <option value="auto">Automático</option><option value="light">Claro</option><option value="dark">Escuro</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="group">
+        <h4>Armazenamento</h4>
+        <div class="row-item static">
+          <span class="row-icon"><svg><use href="#i-shield"/></svg></span>
+          <div class="row-body"><b id="storage-title"></b><small id="storage-text"></small></div>
+        </div>
+        <button class="row-item danger" id="btn-wipe">
+          <span class="row-icon"><svg><use href="#i-trash"/></svg></span>
+          <div class="row-body"><b>Apagar o cofre deste aparelho</b></div>
+        </button>
+      </div>
+      <p class="foot" id="s-version"></p>
+    </div>
+  </main>
+
+  <nav class="tabbar" aria-label="Navegação">
+    <button class="nav-item active" data-tab="vault"><svg><use href="#i-key"/></svg><span>Senhas</span></button>
+    <button class="nav-item" data-tab="health"><svg><use href="#i-shield"/></svg><span>Segurança</span><b class="nav-badge" id="health-badge-m" hidden></b></button>
+    <button class="nav-item" data-tab="settings"><svg><use href="#i-settings"/></svg><span>Ajustes</span></button>
+  </nav>
+</section>
+
+<!-- ============ DETALHE ============ -->
+<div id="sheet-detail" class="sheet" hidden>
+  <div class="sheet-panel">
     <header class="sheet-head">
-      <button class="icon-btn" data-close aria-label="Voltar">‹</button>
-      <h2>Configurações</h2>
-      <span></span>
+      <button class="icon-btn" data-close aria-label="Voltar"><svg><use href="#i-back"/></svg></button>
+      <span class="grow"></span>
+      <button class="icon-btn" id="btn-fav" aria-label="Favorito"><svg><use href="#i-star"/></svg></button>
+      <button class="icon-btn" id="btn-edit" aria-label="Editar"><svg><use href="#i-edit"/></svg></button>
     </header>
-
-    <h3>Segurança</h3>
-    <label>Bloquear ao sair do app depois de
-      <select id="s-lock">
-        <option value="0">Imediatamente</option>
-        <option value="30">30 segundos</option>
-        <option value="60">1 minuto</option>
-        <option value="300">5 minutos</option>
-        <option value="900">15 minutos</option>
-      </select>
-    </label>
-    <label>Bloquear sem uso depois de
-      <select id="s-idle">
-        <option value="1">1 minuto</option>
-        <option value="5">5 minutos</option>
-        <option value="15">15 minutos</option>
-        <option value="60">1 hora</option>
-      </select>
-    </label>
-    <label>Limpar área de transferência depois de
-      <select id="s-clip">
-        <option value="0">Nunca</option>
-        <option value="20">20 segundos</option>
-        <option value="45">45 segundos</option>
-        <option value="90">90 segundos</option>
-      </select>
-    </label>
-    <button id="btn-change-pw" class="btn block">Trocar senha mestra</button>
-
-    <h3>Backup</h3>
-    <p class="muted small" id="s-backup-info"></p>
-    <button id="btn-export" class="btn primary block">Exportar backup criptografado</button>
-    <button id="btn-import" class="btn block">Importar backup (mesclar)</button>
-    <p class="muted small">É pelo backup que as senhas passam de um celular para o outro (AirDrop, cabo, pendrive, Arquivos). O arquivo só abre com a senha mestra usada quando ele foi feito.</p>
-
-    <h3>Armazenamento</h3>
-    <p class="muted small" id="s-storage"></p>
-
-    <h3>Zona de perigo</h3>
-    <button id="btn-wipe" class="btn danger block">Apagar o cofre deste aparelho</button>
-    <p class="muted small center-text" id="s-version"></p>
+    <div class="detail-hero">
+      <span id="d-avatar" class="avatar xl"></span>
+      <h2 id="d-name"></h2>
+      <p class="muted" id="d-cat"></p>
+    </div>
+    <div id="d-fields" class="card-list"></div>
+    <div id="d-history" class="history" hidden></div>
+    <p id="d-meta" class="meta"></p>
+    <button id="btn-delete" class="btn danger-ghost block"><svg><use href="#i-trash"/></svg>Excluir</button>
   </div>
 </div>
 
-<!-- MODAL GENÉRICO DE SENHA -->
+<!-- ============ EDITAR ============ -->
+<div id="sheet-edit" class="sheet" hidden>
+  <div class="sheet-panel">
+    <header class="sheet-head">
+      <button class="icon-btn" data-close aria-label="Cancelar"><svg><use href="#i-close"/></svg></button>
+      <h2 class="grow center" id="e-title">Nova senha</h2>
+      <button id="btn-save" class="btn primary sm">Salvar</button>
+    </header>
+    <div class="form">
+      <div class="field-group">
+        <label for="e-name">Nome *</label>
+        <input id="e-name" type="text" autocomplete="off" placeholder="Ex.: Gmail, Banco, Instagram">
+      </div>
+      <div class="field-group">
+        <label for="e-user">Usuário ou e-mail</label>
+        <input id="e-user" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="field-group">
+        <label for="e-pass">Senha</label>
+        <div class="input-wrap two">
+          <input id="e-pass" type="password" class="mono" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button class="input-icon" type="button" data-toggle-pw="e-pass" aria-label="Mostrar senha"><svg><use href="#i-eye"/></svg></button>
+          <button class="input-icon" type="button" id="e-gen-toggle" aria-label="Gerar senha"><svg><use href="#i-dice"/></svg></button>
+        </div>
+        <div class="meter" id="e-meter"><span></span></div>
+        <p class="hint" id="e-meter-text"></p>
+      </div>
+      <div id="gen" class="gen" hidden>
+        <div class="seg" id="gen-mode">
+          <button type="button" data-mode="chars" class="on">Caracteres</button>
+          <button type="button" data-mode="pin">PIN</button>
+        </div>
+        <div class="gen-out"><code id="gen-out"></code><button id="gen-refresh" class="icon-btn" type="button" aria-label="Gerar outra"><svg><use href="#i-refresh"/></svg></button></div>
+        <div class="range-row"><span>Tamanho</span><input id="gen-len" type="range" min="4" max="40" value="16"><b id="gen-len-v">16</b></div>
+        <div class="toggles" id="gen-opts">
+          <label class="tog"><input type="checkbox" id="gen-upper" checked><span>A-Z</span></label>
+          <label class="tog"><input type="checkbox" id="gen-lower" checked><span>a-z</span></label>
+          <label class="tog"><input type="checkbox" id="gen-digits" checked><span>0-9</span></label>
+          <label class="tog"><input type="checkbox" id="gen-symbols" checked><span>!@#</span></label>
+          <label class="tog"><input type="checkbox" id="gen-amb"><span>Sem parecidos (l, 1, O, 0)</span></label>
+        </div>
+        <button id="gen-use" class="btn primary block" type="button"><svg><use href="#i-check"/></svg>Usar esta senha</button>
+      </div>
+      <div class="field-group">
+        <label for="e-url">Site ou app</label>
+        <input id="e-url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="exemplo.com">
+      </div>
+      <div class="field-group">
+        <label for="e-cat">Categoria</label>
+        <select id="e-cat"></select>
+      </div>
+      <div class="field-group">
+        <label for="e-totp">Chave de verificação em 2 etapas (opcional)</label>
+        <input id="e-totp" type="text" class="mono" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Chave secreta ou otpauth://…">
+        <p class="hint">Cole a chave que o site mostra ao ativar o 2FA. O Cofre passa a gerar os códigos de 6 dígitos, sem internet.</p>
+      </div>
+      <div class="field-group">
+        <label for="e-notes">Observações</label>
+        <textarea id="e-notes" rows="3" placeholder="PIN, perguntas de segurança, etc."></textarea>
+      </div>
+      <label class="check"><input type="checkbox" id="e-fav"> Marcar como favorito</label>
+      <p id="e-msg" class="error" role="alert"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SENHA EM TELA GRANDE ============ -->
+<div id="big" class="big" hidden>
+  <button class="icon-btn big-close" id="big-close" aria-label="Fechar"><svg><use href="#i-close"/></svg></button>
+  <div id="big-chars" class="big-chars"></div>
+  <p class="muted">Toque em qualquer lugar para fechar</p>
+</div>
+
+<!-- ============ MODAL ============ -->
 <div id="modal" class="modal" hidden>
-  <div class="card narrow">
+  <div class="modal-card">
     <h2 id="m-title"></h2>
     <p id="m-text" class="muted"></p>
     <div id="m-inputs"></div>
     <p id="m-msg" class="error" role="alert"></p>
-    <div class="row-end">
-      <button id="m-cancel" class="btn">Cancelar</button>
+    <div class="modal-actions" id="m-actions">
+      <button id="m-cancel" class="btn ghost">Cancelar</button>
       <button id="m-ok" class="btn primary">OK</button>
     </div>
   </div>
 </div>
 
 <div id="busy" class="busy" hidden><div class="spinner"></div><p id="busy-text">Processando…</p></div>
-<div id="toast" class="toast" hidden></div>
+<div id="toast" class="toast" hidden><span id="toast-text"></span><button id="toast-action" class="toast-action" hidden></button></div>
 <input id="file-input" type="file" hidden>
 
 <script src="app.js"></script>

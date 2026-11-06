@@ -1,6 +1,6 @@
 /* Service worker: guarda o app em cache para funcionar sem internet.
  * Os dados (senhas) NÃO passam por aqui: ficam cifrados no IndexedDB. */
-const CACHE = 'cofre-v1.0.2';
+const CACHE = 'cofre-v1.1.0';
 const ASSETS = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'
